@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 480" width="560" height="480">
+  <defs>
+    <!-- Dark Mode Shadows & Gradients -->
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#323232"/>
+      <stop offset="100%" stop-color="#282828"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0088FF"/>
+      <stop offset="100%" stop-color="#0066D6"/>
+    </linearGradient>
+  </defs>
+
+  <style>
+    .window-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif; font-size: 13px; font-weight: 600; fill: #E5E5E5; }
+    .label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif; font-size: 11px; fill: #A5A5A5; }
+    .value { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif; font-size: 11px; fill: #E5E5E5; }
+    .btn-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif; font-size: 12px; fill: #E5E5E5; text-anchor: middle; }
+    .btn-text-primary { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif; font-size: 12px; fill: #FFFFFF; font-weight: 500; text-anchor: middle; }
+    .checkbox-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif; font-size: 11.5px; fill: #DDDDDD; }
+    .tab-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif; font-size: 11.5px; fill: #888888; text-anchor: middle; }
+    .tab-text.active { fill: #007AFF; font-weight: 500; }
+  </style>
+
+  <!-- Window Container -->
+  <rect x="0" y="0" width="560" height="480" rx="12" fill="#1E1E1E" stroke="#3A3A3A" stroke-width="1.5" />
+
+  <!-- Window Header Bar -->
+  <path d="M 0 12 A 12 12 0 0 1 12 0 L 548 0 A 12 12 0 0 1 560 12 L 560 38 L 0 38 Z" fill="url(#headerGrad)"/>
+  <line x1="0" y1="38" x2="560" y2="38" stroke="#1A1A1A" stroke-width="1"/>
+
+  <!-- macOS Window Control Buttons -->
+  <circle cx="18" cy="19" r="5.5" fill="#FF5F56" stroke="#E0443E" stroke-width="0.5"/>
+  <circle cx="34" cy="19" r="5.5" fill="#FFBD2E" stroke="#DEA123" stroke-width="0.5"/>
+  <circle cx="50" cy="19" r="5.5" fill="#27C93F" stroke="#1AAB29" stroke-width="0.5"/>
+
+  <!-- Window Title -->
+  <text x="280" y="23" text-anchor="middle" class="window-title">VNKey - Bảng điều khiển</text>
+
+  <!-- ================= TOP SECTION: ĐIỀU KHIỂN ================= -->
+  <!-- Box border -->
+  <rect x="18" y="52" width="524" height="124" rx="6" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <!-- Label "Điều khiển" border header -->
+  <rect x="30" y="44" width="70" height="15" rx="3" fill="#1E1E1E"/>
+  <text x="65" y="55" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="10.5" fill="#007AFF" font-weight="bold">ĐIỀU KHIỂN</text>
+
+  <!-- Kiểu gõ -->
+  <text x="35" y="84" class="label">Kiểu gõ:</text>
+  <rect x="95" y="68" width="150" height="24" rx="4" fill="#323232" stroke="#484848" stroke-width="1"/>
+  <text x="105" y="84" class="value">Telex</text>
+  <path d="M 230 80 L 234 85 L 238 80 Z" fill="#A5A5A5"/>
+
+  <!-- Bảng mã -->
+  <text x="280" y="84" class="label">Bảng mã:</text>
+  <rect x="345" y="68" width="180" height="24" rx="4" fill="#323232" stroke="#484848" stroke-width="1"/>
+  <text x="355" y="84" class="value">Unicode dựng sẵn</text>
+  <path d="M 510 80 L 514 85 L 518 80 Z" fill="#A5A5A5"/>
+
+  <!-- Phím chuyển -->
+  <text x="35" y="122" class="label">Phím chuyển:</text>
+  <!-- Ctrl Checkbox (checked) -->
+  <rect x="95" y="110" width="14" height="14" rx="3" fill="#007AFF" stroke="#0066D6" stroke-width="0.5"/>
+  <path d="M 98 117 L 101 120 L 106 113" stroke="#FFFFFF" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="115" y="121.5" class="checkbox-text">⌃ Ctrl</text>
+
+  <!-- Shift Checkbox (checked) -->
+  <rect x="165" y="110" width="14" height="14" rx="3" fill="#007AFF" stroke="#0066D6" stroke-width="0.5"/>
+  <path d="M 168 117 L 171 120 L 176 113" stroke="#FFFFFF" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="185" y="121.5" class="checkbox-text">⇧ Shift</text>
+
+  <!-- Hotkey key display (e.g. Space) -->
+  <rect x="245" y="108.5" width="55" height="17" rx="3" fill="#1A1A1A" stroke="#333333" stroke-width="1"/>
+  <text x="272.5" y="121" font-family="-apple-system, sans-serif" font-size="10.5" fill="#888888" text-anchor="middle">Space</text>
+
+  <!-- Kêu Beep Checkbox (unchecked) -->
+  <rect x="315" y="110" width="14" height="14" rx="3" fill="#323232" stroke="#484848" stroke-width="1"/>
+  <text x="335" y="121.5" class="checkbox-text">Kêu Beep</text>
+
+  <!-- Chế độ gõ -->
+  <text x="35" y="156" class="label">Chế độ gõ:</text>
+  <!-- Radio Tiếng Việt (selected) -->
+  <circle cx="102" cy="151.5" r="6.5" fill="#323232" stroke="#007AFF" stroke-width="1.5"/>
+  <circle cx="102" cy="151.5" r="3.5" fill="#007AFF"/>
+  <text x="115" y="155.5" class="checkbox-text">Tiếng Việt</text>
+
+  <!-- Radio English (unselected) -->
+  <circle cx="212" cy="151.5" r="6.5" fill="#323232" stroke="#555555" stroke-width="1"/>
+  <text x="225" y="155.5" class="checkbox-text">English</text>
+
+
+  <!-- ================= MIDDLE SECTION: TABS ================= -->
+  <!-- Tab Header Buttons -->
+  <rect x="18" y="195" width="524" height="30" rx="5" fill="#252525" stroke="#303030" stroke-width="0.5"/>
+  
+  <text x="105" y="214" class="tab-text active">Bộ gõ</text>
+  <line x1="65" y1="223.5" x2="145" y2="223.5" stroke="#007AFF" stroke-width="1.5"/>
+
+  <text x="280" y="214" class="tab-text">Gõ tắt</text>
+  <text x="455" y="214" class="tab-text">Hệ thống</text>
+  
+  <line x1="18" y1="225" x2="542" y2="225" stroke="#303030" stroke-width="1"/>
+
+  <!-- Tab Content Area (Bộ gõ active) -->
+  <!-- Column 1 -->
+  <!-- Checkbox 1: Tự do đặt dấu (checked) -->
+  <rect x="35" y="248" width="14" height="14" rx="3" fill="#007AFF" stroke="#0066D6" stroke-width="0.5"/>
+  <path d="M 38 255 L 41 258 L 46 251" stroke="#FFFFFF" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="56" y="259.5" class="checkbox-text">Tự do đặt dấu</text>
+
+  <!-- Checkbox 2: Đặt dấu kiểu mới (oà, uý) (checked) -->
+  <rect x="35" y="278" width="14" height="14" rx="3" fill="#007AFF" stroke="#0066D6" stroke-width="0.5"/>
+  <path d="M 38 285 L 41 288 L 46 281" stroke="#FFFFFF" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="56" y="289.5" class="checkbox-text">Đặt dấu kiểu mới (oà, uý)</text>
+
+  <!-- Checkbox 3: Kiểm tra chính tả (checked) -->
+  <rect x="35" y="308" width="14" height="14" rx="3" fill="#007AFF" stroke="#0066D6" stroke-width="0.5"/>
+  <path d="M 38 315 L 41 318 L 46 311" stroke="#FFFFFF" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="56" y="319.5" class="checkbox-text">Kiểm tra chính tả</text>
+
+  <!-- Checkbox 4: Phục hồi phím với từ sai (checked) -->
+  <rect x="35" y="338" width="14" height="14" rx="3" fill="#007AFF" stroke="#0066D6" stroke-width="0.5"/>
+  <path d="M 38 345 L 41 348 L 46 341" stroke="#FFFFFF" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="56" y="349.5" class="checkbox-text">Phục hồi phím với từ sai</text>
+
+  <!-- Checkbox 5: Tự động viết hoa chữ cái đầu (unchecked) -->
+  <rect x="35" y="368" width="14" height="14" rx="3" fill="#323232" stroke="#484848" stroke-width="1"/>
+  <text x="56" y="379.5" class="checkbox-text">Tự động viết hoa chữ cái đầu</text>
+
+  <!-- Column 2 -->
+  <!-- Checkbox 6: Kiểm tra ngữ pháp (unchecked) -->
+  <rect x="290" y="248" width="14" height="14" rx="3" fill="#323232" stroke="#484848" stroke-width="1"/>
+  <text x="310" y="259.5" class="checkbox-text">Kiểm tra ngữ pháp</text>
+
+  <!-- Checkbox 7: Gõ nhanh Telex (checked) -->
+  <rect x="290" y="278" width="14" height="14" rx="3" fill="#007AFF" stroke="#0066D6" stroke-width="0.5"/>
+  <path d="M 293 285 L 296 288 L 301 281" stroke="#FFFFFF" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="310" y="289.5" class="checkbox-text">Gõ nhanh Telex</text>
+
+  <!-- Checkbox 8: Tạm tắt chính tả bằng Ctrl (unchecked) -->
+  <rect x="290" y="308" width="14" height="14" rx="3" fill="#323232" stroke="#484848" stroke-width="1"/>
+  <text x="310" y="319.5" class="checkbox-text">Tạm tắt chính tả bằng Ctrl</text>
+
+  <!-- Checkbox 9: Cho phép dùng f z w j (checked) -->
+  <rect x="290" y="338" width="14" height="14" rx="3" fill="#007AFF" stroke="#0066D6" stroke-width="0.5"/>
+  <path d="M 293 345 L 296 348 L 301 341" stroke="#FFFFFF" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="310" y="349.5" class="checkbox-text">Cho phép dùng f z w j làm phụ âm đầu</text>
+
+
+  <!-- ================= BOTTOM SECTION: ACTIONS ================= -->
+  <line x1="0" y1="415" x2="560" y2="415" stroke="#2D2D2D" stroke-width="1"/>
+
+  <!-- Quit Button ("Kết thúc") -->
+  <rect x="18" y="430" width="100" height="28" rx="5" fill="#323232" stroke="#484848" stroke-width="1"/>
+  <text x="68" y="448" class="btn-text">Kết thúc</text>
+
+  <!-- Default Button ("Mặc định") -->
+  <rect x="322" y="430" width="100" height="28" rx="5" fill="#323232" stroke="#484848" stroke-width="1"/>
+  <text x="372" y="448" class="btn-text">Mặc định</text>
+
+  <!-- OK Button (Primary Action) -->
+  <rect x="442" y="430" width="100" height="28" rx="5" fill="url(#accentGrad)" stroke="#005BBA" stroke-width="0.5"/>
+  <text x="492" y="448" class="btn-text-primary">OK</text>
+
+</svg>

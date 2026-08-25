@@ -1,0 +1,87 @@
+name: VNKey
+options:
+  bundleIdPrefix: com.vnkey
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "16.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+
+targets:
+
+  # ════════════════════════════════════════════════════════════════
+  # Main Target: VNKey Input Method
+  # ════════════════════════════════════════════════════════════════
+  VNKey:
+    type: application
+    platform: macOS
+    sources:
+      - path: VNKeyMacos
+        excludes:
+          - "*.entitlements"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.vnkey.inputmethod.VNKey
+        INFOPLIST_FILE: VNKeyMacos/Info.plist
+        CODE_SIGN_ENTITLEMENTS: VNKeyMacos/VNKey.entitlements
+        # Input Method phải chạy background-only
+        LSBackgroundOnly: true
+        LSUIElement: true
+        # Disable App Sandbox (required for IMK)
+        ENABLE_APP_SANDBOX: false
+        # Cần Hardened Runtime cho notarization nhưng disable library validation
+        ENABLE_HARDENED_RUNTIME: true
+        ENABLE_HARDENED_RUNTIME_LIBRARY_VALIDATION: false
+        # Main entry point là main.swift, không dùng @main
+        # (IMKServer phải init trước NSApplication)
+        SWIFT_OBJC_BRIDGING_HEADER: ""
+        # Product output
+        INSTALL_PATH: "$(HOME)/Library/Input Methods"
+        SKIP_INSTALL: false
+    dependencies:
+      - framework: InputMethodKit.framework
+        embed: false
+      - framework: Carbon.framework
+        embed: false
+      - sdk: AppKit.framework
+
+  # ════════════════════════════════════════════════════════════════
+  # Test Target: Unit Tests
+  # ════════════════════════════════════════════════════════════════
+  VNKeyTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: VNKeyTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.vnkey.inputmethod.VNKeyTests
+        GENERATE_INFOPLIST_FILE: true
+        # Don't use TEST_HOST — VNKey is a background-only input method
+        # that can't serve as a test host. Run as standalone unit test bundle.
+    dependencies:
+      - target: VNKey
+
+schemes:
+  VNKey:
+    build:
+      targets:
+        VNKey: all
+        VNKeyTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - VNKeyTests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

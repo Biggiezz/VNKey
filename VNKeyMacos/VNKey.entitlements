@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+        Input Method KHÔNG chạy trong App Sandbox được.
+        IMKServer cần quyền truy cập hệ thống để nhận keyboard events
+        và gửi text tới các ứng dụng khác.
+    -->
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+
+    <!--
+        Quyền Accessibility: cần thiết cho CGEventStrategy và
+        ClipboardStrategy để gửi phím ảo (virtual key events)
+        tới các ứng dụng đích.
+    -->
+    <key>com.apple.security.temporary-exception.apple-events</key>
+    <true/>
+</dict>
+</plist>
