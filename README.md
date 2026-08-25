@@ -22,46 +22,51 @@ Dưới đây là giao diện bảng điều khiển chính thức của VNKey (
 ## ⌨️ Hỗ trợ kiểu gõ
 
 VNKey hỗ trợ đầy đủ các kiểu gõ tiếng Việt thông dụng nhất hiện nay:
-*   **Telex**
-*   **VNI**
-*   **Simple Telex**
+
+- **Telex**
+- **VNI**
+- **Simple Telex**
 
 ## 🔠 Bảng mã thông dụng
 
 Hỗ trợ chuyển đổi linh hoạt giữa các bảng mã ký tự tiếng Việt phổ biến:
-*   **Unicode** (Unicode dựng sẵn - tiêu chuẩn)
-*   **Unicode Compound** (Unicode tổ hợp)
-*   **TCVN3 (ABC)**
-*   **VNI Windows**
-*   **Vietnamese Locale CP 1258**
+
+- **Unicode** (Unicode dựng sẵn - tiêu chuẩn)
+- **Unicode Compound** (Unicode tổ hợp)
+- **TCVN3 (ABC)**
+- **VNI Windows**
+- **Vietnamese Locale CP 1258**
 
 ---
 
 ## 🌟 Các tính năng nổi bật
 
 ### 1. Bộ gõ tối ưu
-*   **Tự do đặt dấu:** Cho phép bỏ dấu tự do ở bất kỳ vị trí nào của từ.
-*   **Đặt dấu kiểu mới:** Đặt dấu theo chuẩn chính tả mới (ví dụ: `oà`, `uý` thay vì `òa`, `úy`).
-*   **Kiểm tra chính tả & ngữ pháp:** Phát hiện và tự động sửa các lỗi từ gõ sai quy chuẩn tiếng Việt.
-*   **Phục hồi phím với từ sai:** Tự động khôi phục các phím đã gõ khi phát hiện từ không hợp lệ.
-*   **Tự động viết hoa:** Tự viết hoa chữ cái đầu tiên của câu hoặc sau dấu chấm.
-*   **Cho phép phụ âm đầu đặc biệt:** Cho phép sử dụng các phím `f`, `z`, `w`, `j` làm phụ âm đầu cho các từ mượn nước ngoài.
+
+- **Tự do đặt dấu:** Cho phép bỏ dấu tự do ở bất kỳ vị trí nào của từ.
+- **Đặt dấu kiểu mới:** Đặt dấu theo chuẩn chính tả mới (ví dụ: `oà`, `uý` thay vì `òa`, `úy`).
+- **Kiểm tra chính tả & ngữ pháp:** Phát hiện và tự động sửa các lỗi từ gõ sai quy chuẩn tiếng Việt.
+- **Phục hồi phím với từ sai:** Tự động khôi phục các phím đã gõ khi phát hiện từ không hợp lệ.
+- **Tự động viết hoa:** Tự viết hoa chữ cái đầu tiên của câu hoặc sau dấu chấm.
+- **Cho phép phụ âm đầu đặc biệt:** Cho phép sử dụng các phím `f`, `z`, `w`, `j` làm phụ âm đầu cho các từ mượn nước ngoài.
 
 ### 2. Gõ tắt & Macros nâng cao
-*   **Bảng gõ tắt tùy biến:** Quản lý và sử dụng danh sách từ gõ tắt cá nhân.
-*   **Tự động viết hoa phím tắt:** Tự động nhận diện viết hoa theo từ phím tắt gốc.
-*   **Gõ nhanh phụ âm đầu/cuối:**
-    *   Phần đầu: `f` -> `ph`, `j` -> `gi`, `w` -> `qu`.
-    *   Phần cuối: `g` -> `ng`, `h` -> `nh`, `k` -> `ch`.
-    *   Lặp từ nhanh: `cc` -> `ch`, `gg` -> `gi`, `kk` -> `kh`, `nn` -> `ng`...
-*   **Gõ tắt ở chế độ tiếng Anh:** Cho phép sử dụng macros gõ tắt ngay cả khi đã tạm tắt chế độ gõ tiếng Việt.
+
+- **Bảng gõ tắt tùy biến:** Quản lý và sử dụng danh sách từ gõ tắt cá nhân.
+- **Tự động viết hoa phím tắt:** Tự động nhận diện viết hoa theo từ phím tắt gốc.
+- **Gõ nhanh phụ âm đầu/cuối:**
+  - Phần đầu: `f` -> `ph`, `j` -> `gi`, `w` -> `qu`.
+  - Phần cuối: `g` -> `ng`, `h` -> `nh`, `k` -> `ch`.
+  - Lặp từ nhanh: `cc` -> `ch`, `gg` -> `gi`, `kk` -> `kh`, `nn` -> `ng`...
+- **Gõ tắt ở chế độ tiếng Anh:** Cho phép sử dụng macros gõ tắt ngay cả khi đã tạm tắt chế độ gõ tiếng Việt.
 
 ### 3. Tương thích hệ thống sâu
-*   **Sửa lỗi gạch chân trên macOS:** Loại bỏ hoàn toàn vạch gạch chân màu xanh khó chịu khi gõ của bộ gõ mặc định.
-*   **Sửa lỗi Autocorrect trình duyệt:** Không còn hiện tượng bị trùng ký tự, nuốt từ trên Chrome, Safari, Firefox, hay Microsoft Excel.
-*   **Chuyển chế độ thông minh:** Tự động loại trừ và tắt gõ tiếng Việt khi vào các ứng dụng đặc thù (code editor, terminal...).
-*   **Gửi từng phím (Send Key Step):** Chế độ dự phòng giả lập bàn phím vật lý đối với các ứng dụng có cơ chế bảo mật hoặc nhận diện phím nghiêm ngặt.
-*   **Khởi động cùng hệ thống:** Thiết lập tự động khởi chạy cùng macOS để sẵn sàng sử dụng.
+
+- **Sửa lỗi gạch chân trên macOS:** Loại bỏ hoàn toàn vạch gạch chân màu xanh khó chịu khi gõ của bộ gõ mặc định.
+- **Sửa lỗi Autocorrect trình duyệt:** Không còn hiện tượng bị trùng ký tự, nuốt từ trên Chrome, Safari, Firefox, hay Microsoft Excel.
+- **Chuyển chế độ thông minh:** Tự động loại trừ và tắt gõ tiếng Việt khi vào các ứng dụng đặc thù (code editor, terminal...).
+- **Gửi từng phím (Send Key Step):** Chế độ dự phòng giả lập bàn phím vật lý đối với các ứng dụng có cơ chế bảo mật hoặc nhận diện phím nghiêm ngặt.
+- **Khởi động cùng hệ thống:** Thiết lập tự động khởi chạy cùng macOS để sẵn sàng sử dụng.
 
 ---
 
@@ -88,6 +93,7 @@ open ~/Library/Input\ Methods/VNKey.app
 ---
 
 ### Cách 2: Cài đặt thủ công
+
 1.  Truy cập vào mục **Releases** của repository này trên trình duyệt và tải file `VNKey.zip` bản mới nhất.
 2.  Nhấp đúp chuột để giải nén file tải về, bạn sẽ nhận được ứng dụng `VNKey.app`.
 3.  Mở Finder, nhấn tổ hợp phím `Cmd + Shift + G` và dán đường dẫn: `~/Library/Input Methods`.
@@ -123,6 +129,7 @@ open ~/Library/Input\ Methods/VNKey.app
 ## ⚙️ Kích hoạt bộ gõ trên macOS
 
 Sau khi cài đặt ứng dụng vào thư mục `Input Methods` và chạy ứng dụng:
+
 1.  Vào **Cài đặt hệ thống (System Settings)** > **Bàn phím (Keyboard)**.
 2.  Tại phần **Nguồn nhập (Input Sources)**, chọn nút **Sửa... (Edit...)**.
 3.  Nhấn nút dấu **+** ở góc dưới bên trái, tìm kiếm từ khóa `VNKey` trong danh sách tiếng Việt.
@@ -139,15 +146,16 @@ Sau khi cài đặt ứng dụng vào thư mục `Input Methods` và chạy ứn
 > [!IMPORTANT]
 > **Cấp quyền Trợ năng (Accessibility Permission):**
 > VNKey cần quyền Trợ năng của macOS để có thể đọc các sự kiện bàn phím vật lý nhằm xử lý và thay thế văn bản tiếng Việt.
-> *   Lần đầu chạy, ứng dụng sẽ yêu cầu quyền này.
-> *   Nếu ứng dụng không tự động yêu cầu hoặc gõ không ra tiếng Việt, hãy truy cập:
->     `Cài đặt hệ thống > Quyền riêng tư & Bảo mật > Trợ năng` (System Settings > Privacy & Security > Accessibility).
-> *   Tìm ứng dụng `VNKey` trong danh sách và bật công tắc cho phép.
+>
+> - Lần đầu chạy, ứng dụng sẽ yêu cầu quyền này.
+> - Nếu ứng dụng không tự động yêu cầu hoặc gõ không ra tiếng Việt, hãy truy cập:
+>   `Cài đặt hệ thống > Quyền riêng tư & Bảo mật > Trợ năng` (System Settings > Privacy & Security > Accessibility).
+> - Tìm ứng dụng `VNKey` trong danh sách và bật công tắc cho phép.
 
 ---
 
 ## 👥 Tác giả & Giấy phép
 
-*   **Ý tưởng và Thiết kế gốc:** Lấy ý tưởng từ dự án bộ gõ mã nguồn mở [OpenKey](https://github.com/tuyenvm/OpenKey) của tác giả **Nguyễn Vĩ Tuyến**.
-*   **Phát triển bởi:** [Nguyen Manh Phuc](https://github.com/nguyenmanhphuc) (hoặc đội ngũ phát triển VNKey).
-*   **Bản quyền & Giấy phép:** Dự án được phát hành công khai dưới giấy phép mã nguồn mở **GPL v3**. Bạn hoàn toàn được phép sao chép, tùy chỉnh và phát triển tiếp nối miễn là tuân thủ các điều khoản nguồn mở của giấy phép này.
+- **Ý tưởng và Thiết kế gốc:** Lấy ý tưởng từ dự án bộ gõ mã nguồn mở [OpenKey](https://github.com/tuyenvm/OpenKey) của tác giả **Nguyễn Vĩ Tuyến**.
+- **Phát triển bởi:** [Nguyễn Mạnh Phúc](https://github.com/Biggiezz).
+- **Bản quyền & Giấy phép:** Dự án được phát hành công khai dưới giấy phép mã nguồn mở **GPL v3**. Bạn hoàn toàn được phép sao chép, tùy chỉnh và phát triển tiếp nối miễn là tuân thủ các điều khoản nguồn mở của giấy phép này.
