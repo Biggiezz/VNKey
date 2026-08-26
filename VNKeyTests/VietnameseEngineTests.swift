@@ -118,6 +118,14 @@ final class VietnameseEngineTests: XCTestCase {
 
     func testTelexUppercase() {
         XCTAssertEqual(processTelex("Vieetj"), "Việt")
+        XCTAssertEqual(processTelex("Anhr"), "Ảnh")
+        XCTAssertEqual(processTelex("anhr"), "ảnh")
+        XCTAssertEqual(processTelex("ANHR"), "ẢNH")
+        XCTAssertEqual(processTelex("Aasn"), "Ấn")
+        XCTAssertEqual(processTelex("Awn"), "Ăn")
+        XCTAssertEqual(processTelex("Owr"), "Ở")
+        XCTAssertEqual(processTelex("Uwsng"), "Ứng")
+        XCTAssertEqual(processTelex("DDuowngf"), "Đường")
     }
 
     // MARK: - Telex: Undo Tone

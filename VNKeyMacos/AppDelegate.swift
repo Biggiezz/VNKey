@@ -337,11 +337,6 @@ final class GlobalEventTapManager {
                 }
             }
 
-            if buffer.isComposing {
-                buffer.commit()
-            }
-            CGEventStrategy.shared.resetState()
-            ClipboardStrategy.shared.resetState()
             return Unmanaged.passUnretained(event)
         }
 
@@ -579,6 +574,11 @@ final class GlobalEventTapManager {
     }
 
     private func toggleLanguageMode() {
+        if buffer.isComposing {
+            buffer.commit()
+            CGEventStrategy.shared.resetState()
+            ClipboardStrategy.shared.resetState()
+        }
         let prefs = PreferencesManager.shared
         prefs.isEnabled = !prefs.isEnabled
         GlobalEventTapManager.shared.syncPreferences()
