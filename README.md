@@ -5,9 +5,9 @@
 [![Xcode Version](https://img.shields.io/badge/Xcode-%E2%89%A5%2016.0-blue.svg)](https://developer.apple.com/xcode/)
 [![License](https://img.shields.io/badge/License-GPL%20v3-green.svg)](LICENSE)
 
-**VNKey** là bộ gõ tiếng Việt nguồn mở, nhẹ nhàng và hiện đại dành cho hệ điều hành macOS (được thiết kế với kiến trúc mô-đun sẵn sàng mở rộng cho cả Windows). Ứng dụng tập trung vào hiệu năng gõ phím mượt mà, loại bỏ triệt để lỗi gạch chân (underline) khó chịu và sửa lỗi tự động sửa từ (autocorrect) trên các trình duyệt và Excel.
+**VNKey** là bộ gõ tiếng Việt nguồn mở, nhẹ nhàng và hiện đại dành cho hệ điều hành macOS (được thiết kế với kiến trúc mô-đun sẵn sàng mở rộng cho cả Windows). Ứng dụng tập trung vào hiệu năng gõ phím mượt mà, **khắc phục triệt để lỗi gõ văn bản trên Google Docs** (lỗi nhảy con trỏ, lặp chữ, mất dấu — đây là điểm khác biệt và cải tiến vượt trội so với OpenKey), đồng thời loại bỏ hoàn toàn lỗi gạch chân (underline) và lỗi autocorrect trên các trình duyệt cũng như Excel.
 
-Dự án được truyền cảm hứng và lấy ý tưởng từ [OpenKey](https://github.com/tuyenvm/OpenKey) của tác giả Nguyễn Vĩ Tuyến.
+Dự án được truyền cảm hứng và phát triển dựa trên nền tảng ý tưởng từ [OpenKey](https://github.com/tuyenvm/OpenKey) của tác giả Nguyễn Vĩ Tuyến, với mục tiêu nâng cấp khả năng tương thích hoàn hảo trên các nền tảng web hiện đại.
 
 ---
 
@@ -60,8 +60,9 @@ Hỗ trợ chuyển đổi linh hoạt giữa các bảng mã ký tự tiếng V
   - Lặp từ nhanh: `cc` -> `ch`, `gg` -> `gi`, `kk` -> `kh`, `nn` -> `ng`...
 - **Gõ tắt ở chế độ tiếng Anh:** Cho phép sử dụng macros gõ tắt ngay cả khi đã tạm tắt chế độ gõ tiếng Việt.
 
-### 3. Tương thích hệ thống sâu
+### 3. Tương thích hệ thống sâu & Trình duyệt
 
+- **Sửa triệt để lỗi gõ trên Google Docs (Điểm khác biệt cốt lõi so với OpenKey):** Xử lý hoàn hảo cơ chế kết xuất văn bản của Google Docs (Canvas/DOM) — giải quyết dứt điểm tình trạng bị mất chữ, nhảy vị trí con trỏ hoặc lặp từ thường gặp trên OpenKey và các bộ gõ truyền thống.
 - **Sửa lỗi gạch chân trên macOS:** Loại bỏ hoàn toàn vạch gạch chân màu xanh khó chịu khi gõ của bộ gõ mặc định.
 - **Sửa lỗi Autocorrect trình duyệt:** Không còn hiện tượng bị trùng ký tự, nuốt từ trên Chrome, Safari, Firefox, hay Microsoft Excel.
 - **Chuyển chế độ thông minh:** Tự động loại trừ và tắt gõ tiếng Việt khi vào các ứng dụng đặc thù (code editor, terminal...).
