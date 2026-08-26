@@ -143,44 +143,43 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MARK: - Accessibility Permissions
 
     private func checkAccessibilityPermission() {
-        if AXIsProcessTrusted() {
-            NSLog("VNKey: Accessibility permission granted ✓")
-            GlobalEventTapManager.shared.start()
-        } else {
-            NSLog("VNKey: Accessibility permission not granted. Requesting user action...")
-            showAccessibilityDialog()
+        // 1. Thử khởi động Event Tap ngay lập tức nếu đã được cấp quyền
+        if GlobalEventTapManager.shared.start() {
+            NSLog("VNKey: Accessibility permission granted & Event tap active ✓")
+            return
         }
+
+        if AXIsProcessTrusted() {
+            NSLog("VNKey: Accessibility permission is trusted ✓")
+            _ = GlobalEventTapManager.shared.start()
+            return
+        }
+
+        NSLog("VNKey: Accessibility permission not granted yet. Requesting via system prompt...")
+        requestAccessibilityPermission()
     }
 
-    private func showAccessibilityDialog() {
-        // Trigger system prompt once so the app appears in settings list
+    private func requestAccessibilityPermission() {
+        // Kích hoạt system prompt native của macOS (kAXTrustedCheckOptionPrompt: true)
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
-        _ = AXIsProcessTrustedWithOptions(options as CFDictionary)
-
-        let alert = NSAlert()
-        alert.messageText = "Cần cấp quyền Trợ năng (Accessibility)"
-        alert.informativeText = "VNKey cần quyền Trợ năng để có thể tự động bỏ dấu tiếng Việt khi bạn gõ chữ toàn hệ thống.\n\nVui lòng mở Cài đặt hệ thống, chọn Quyền riêng tư & Bảo mật -> Trợ năng và gạt bật VNKey."
-        alert.addButton(withTitle: "Mở Cài đặt hệ thống")
-        alert.addButton(withTitle: "Thoát")
-
-        let response = alert.runModal()
-        if response == .alertFirstButtonReturn {
-            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                NSWorkspace.shared.open(url)
-            }
-            schedulePermissionCheck()
-        } else {
-            NSApplication.shared.terminate(nil)
+        let isTrusted = AXIsProcessTrustedWithOptions(options as CFDictionary)
+        if isTrusted {
+            _ = GlobalEventTapManager.shared.start()
+            return
         }
+
+        // Chạy polling ngầm để tự động kích hoạt ngay khi user gạt bật trong Cài đặt hệ thống mà không cần chặn UI hay thoát app
+        schedulePermissionCheck()
     }
 
     private func schedulePermissionCheck() {
-        permissionTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] timer in
-            if AXIsProcessTrusted() {
+        guard permissionTimer == nil else { return }
+        permissionTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] timer in
+            if AXIsProcessTrusted() || GlobalEventTapManager.shared.start() {
                 timer.invalidate()
                 self?.permissionTimer = nil
-                NSLog("VNKey: Accessibility permission granted in background ✓")
-                GlobalEventTapManager.shared.start()
+                NSLog("VNKey: Accessibility permission granted in background & Event tap active ✓")
+                _ = GlobalEventTapManager.shared.start()
             }
         }
     }
@@ -214,9 +213,14 @@ final class GlobalEventTapManager {
         }
     }
 
+    var isActive: Bool {
+        return eventTap != nil
+    }
+
     /// Khởi động lắng nghe sự kiện bàn phím toàn cục.
-    func start() {
-        guard eventTap == nil else { return }
+    @discardableResult
+    func start() -> Bool {
+        if eventTap != nil { return true }
 
         // Lắng nghe sự kiện: keyDown, mouse clicks (cho focus change detection),
         // và flagsChanged (cho modifier keys)
@@ -236,7 +240,7 @@ final class GlobalEventTapManager {
             userInfo: nil
         ) else {
             NSLog("VNKey: Failed to create event tap")
-            return
+            return false
         }
 
         self.eventTap = tap
@@ -244,6 +248,7 @@ final class GlobalEventTapManager {
         CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
         NSLog("VNKey: Global event tap started successfully ✓")
+        return true
     }
 
     /// Ngừng lắng nghe.
