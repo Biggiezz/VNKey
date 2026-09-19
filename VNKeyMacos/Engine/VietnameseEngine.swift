@@ -72,6 +72,8 @@ final class VietnameseEngine: Sendable {
 
         var result: [Character] = []
         var pendingTone: Tone? = nil
+        var pendingToneChar: Character? = nil
+        var pendingToneIndex: Int? = nil
         var hasVowelInResult = false
         var anyTransformation = false
 
@@ -86,17 +88,18 @@ final class VietnameseEngine: Sendable {
             // ── Bước 2b: Thử tone key ──
             // Tone key chỉ hợp lệ khi:
             //   1. Đã có nguyên âm trong result
-            //   2. Ký tự này là tone key theo kiểu gõ hiện tại
+            //   2. Vị trí hiện tại hợp lệ theo cấu trúc âm tiết tiếng Việt (cụm nguyên âm liên tục, coda hợp lệ)
+            //   3. Ký tự này là tone key theo kiểu gõ hiện tại
             //
             // Ngoại lệ: nếu tone key cũng có thể là phụ âm đầu
             //            (s, r, x trong Telex), chỉ coi là tone key
-            //            khi đã có nguyên âm.
-            if hasVowelInResult, let tone = processor.toneForKey(char) {
+            //            khi đã có nguyên âm và ở vị trí hợp lệ.
+            if hasVowelInResult, isValidTonePosition(in: result), let tone = processor.toneForKey(char) {
                 // z (Telex) hoặc 0 (VNI) là tone key để xóa dấu (.none).
                 // Chỉ xử lý nó như tone key nếu đang có dấu thanh active (khác .none).
                 // Nếu không có dấu active, ta coi nó là ký tự thường (sẽ append vào result).
                 if tone == .none {
-                    let hasActiveTone = pendingTone != nil && pendingTone != .none
+                    let hasActiveTone = pendingTone != nil && pendingTone != Tone.none
                     if !hasActiveTone {
                         // Bỏ qua việc xử lý tone key, để nó rơi xuống bước 2c làm ký tự thường
                         result.append(char)
@@ -108,9 +111,13 @@ final class VietnameseEngine: Sendable {
                 if let existing = pendingTone, existing == tone, tone != .none {
                     // Undo: xóa dấu, thêm ký tự literal
                     pendingTone = nil
+                    pendingToneChar = nil
+                    pendingToneIndex = nil
                     result.append(char)
                 } else {
                     pendingTone = tone
+                    pendingToneChar = char
+                    pendingToneIndex = result.count
                     anyTransformation = true
                 }
                 continue
@@ -125,12 +132,20 @@ final class VietnameseEngine: Sendable {
 
         // ── Bước 3: Áp dụng dấu thanh ──
         if let tone = pendingTone {
-            result = toneManager.applyTone(
-                to: result,
-                tone: tone,
-                style: tonePlacement
-            )
-            anyTransformation = true
+            if isValidTonePosition(in: result) {
+                result = toneManager.applyTone(
+                    to: result,
+                    tone: tone,
+                    style: tonePlacement
+                )
+                anyTransformation = true
+            } else if let toneChar = pendingToneChar, let insertIdx = pendingToneIndex {
+                // Nếu cấu trúc từ sau cùng không hợp lệ để mang dấu thanh tiếng Việt
+                // (ví dụ: gõ "cors", "fork", "market", từ đa âm tiết hoặc coda không hợp lệ)
+                // Hoàn trả lại ký tự tone key đã bị nuốt
+                let safeIdx = min(insertIdx, result.count)
+                result.insert(toneChar, at: safeIdx)
+            }
         }
 
         let processed = String(result)
@@ -204,6 +219,37 @@ final class VietnameseEngine: Sendable {
     }
 
     // MARK: - Private
+    
+    /// Kiểm tra xem vị trí hiện tại trong `chars` có hợp lệ để nhận dấu thanh không:
+    /// 1. Phải có ít nhất một nguyên âm trong `chars`.
+    /// 2. Các nguyên âm phải nằm trong một cụm liên tục duy nhất (không có phụ âm xen giữa, tránh từ đa âm tiết tiếng Anh như "resets", "markets").
+    /// 3. Phần phụ âm đứng sau nguyên âm cuối (coda) phải rỗng hoặc là coda hợp lệ trong tiếng Việt (c, ch, m, n, ng, nh, p, t).
+    private func isValidTonePosition(in chars: [Character]) -> Bool {
+        var vowelIndices: [Int] = []
+        for (i, ch) in chars.enumerated() {
+            if VietConstants.isVowel(ch) {
+                vowelIndices.append(i)
+            }
+        }
+
+        guard let firstVowel = vowelIndices.first, let lastVowel = vowelIndices.last else {
+            return false
+        }
+
+        // Kiểm tra tất cả nguyên âm có liên tiếp nhau không (ngăn cách bởi phụ âm -> từ đa âm tiết / ngoại lai)
+        if lastVowel - firstVowel + 1 != vowelIndices.count {
+            return false
+        }
+
+        // Kiểm tra phần phụ âm đứng sau nguyên âm cuối cùng
+        let suffixChars = chars[(lastVowel + 1)...]
+        if suffixChars.isEmpty {
+            return true
+        }
+
+        let suffix = String(suffixChars).lowercased()
+        return VietConstants.validCodas.contains(suffix)
+    }
 
     private func updateVowelFlag(_ flag: inout Bool, in chars: [Character]) {
         if !flag {

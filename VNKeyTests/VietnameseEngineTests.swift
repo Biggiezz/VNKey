@@ -234,4 +234,49 @@ final class VietnameseEngineTests: XCTestCase {
         // "dduocjw" (đuọc + w -> được) -> "được"
         XCTAssertEqual(processTelex("dduocjw"), "được")
     }
+
+    // MARK: - Tone After Invalid Coda / English Words
+
+    func testToneAfterInvalidCoda() {
+        // "corr" -> "cor" (undo tone 'r')
+        XCTAssertEqual(processTelex("corr"), "cor")
+        // "corrs" -> "cors" (không được biến thành "cór")
+        XCTAssertEqual(processTelex("corrs"), "cors")
+        // "carrs" -> "cars"
+        XCTAssertEqual(processTelex("carrs"), "cars")
+        // "barrs" -> "bars"
+        XCTAssertEqual(processTelex("barrs"), "bars")
+        // "starrs" -> "stars"
+        XCTAssertEqual(processTelex("starrs"), "stars")
+        // "firrst" -> "first"
+        XCTAssertEqual(processTelex("firrst"), "first")
+        // "corrrect" -> "correct"
+        XCTAssertEqual(processTelex("corrrect"), "correct")
+        // "corrner" -> "corner"
+        XCTAssertEqual(processTelex("corrner"), "corner")
+        // "markets" -> "markets" (không được biến thành "markét")
+        XCTAssertEqual(processTelex("markets"), "markets")
+        // "ressets" -> "resets" (không được biến thành "resét")
+        XCTAssertEqual(processTelex("ressets"), "resets")
+        // "ussers" -> "users" (không được biến thành "usér")
+        XCTAssertEqual(processTelex("ussers"), "users")
+    }
+
+    func testValidVietnameseWordsPreserved() {
+        XCTAssertEqual(processTelex("toanf"), "toàn")
+        XCTAssertEqual(processTelex("toans"), "toán")
+        XCTAssertEqual(processTelex("toafn"), "toàn")
+        XCTAssertEqual(processTelex("vieetj"), "việt")
+        XCTAssertEqual(processTelex("dduwowngf"), "đường")
+        XCTAssertEqual(processTelex("toanss"), "toans")
+        XCTAssertEqual(processTelex("quas"), "quá")
+        XCTAssertEqual(processTelex("gias"), "giá")
+        XCTAssertEqual(processTelex("quyx"), "quỹ")
+    }
+
+    func testVNICodaConstraints() {
+        XCTAssertEqual(processVNI("toan2"), "toàn")
+        XCTAssertEqual(processVNI("cor1"), "cor1")
+        XCTAssertEqual(processVNI("cor6"), "cor6")
+    }
 }

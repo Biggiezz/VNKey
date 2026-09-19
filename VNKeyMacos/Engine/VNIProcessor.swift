@@ -161,12 +161,21 @@ final class VNIProcessor: InputMethodProcessor {
     ) -> Int? {
         for i in stride(from: chars.count - 1, through: 0, by: -1) {
             let ch = chars[i]
-            if let decomp = VietConstants.decompose(ch), targets.contains(decomp.base) {
-                return i
+            let base: Character
+            if let decomp = VietConstants.decompose(ch) {
+                base = decomp.base
+            } else {
+                base = Character(ch.lowercased())
             }
-            let lower = Character(ch.lowercased())
-            if targets.contains(lower) {
-                return i
+
+            if VietConstants.isVowel(ch) {
+                if targets.contains(base) {
+                    let suffix = String(chars[(i + 1)...]).lowercased()
+                    if suffix.isEmpty || VietConstants.validCodas.contains(suffix) {
+                        return i
+                    }
+                }
+                break
             }
         }
         return nil

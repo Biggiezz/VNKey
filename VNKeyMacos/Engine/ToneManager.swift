@@ -118,6 +118,28 @@ final class ToneManager: Sendable {
 
         guard !vowelPositions.isEmpty else { return nil }
 
+        // Bỏ qua âm đệm 'u' sau 'q' (qu + nguyên âm -> dấu đặt trên nguyên âm sau 'u', vd: quá, quà, quả, quý)
+        if vowelPositions.count >= 2,
+           let firstVowel = vowelPositions.first,
+           firstVowel.index > 0 {
+            let prevChar = Character(chars[firstVowel.index - 1].lowercased())
+            let firstBase = firstVowel.decomp?.base ?? Character(chars[firstVowel.index].lowercased())
+            if prevChar == "q" && firstBase == "u" {
+                vowelPositions.removeFirst()
+            }
+        }
+
+        // Bỏ qua âm 'i' sau 'g' nếu phía sau còn nguyên âm khác (gi + nguyên âm -> dấu đặt trên nguyên âm sau 'i', vd: giá, gió)
+        if vowelPositions.count >= 2,
+           let firstVowel = vowelPositions.first,
+           firstVowel.index > 0 {
+            let prevChar = Character(chars[firstVowel.index - 1].lowercased())
+            let firstBase = firstVowel.decomp?.base ?? Character(chars[firstVowel.index].lowercased())
+            if prevChar == "g" && firstBase == "i" {
+                vowelPositions.removeFirst()
+            }
+        }
+
         // Nếu chỉ có 1 nguyên âm → đặt dấu lên nó
         if vowelPositions.count == 1 {
             return vowelPositions[0].index
