@@ -108,7 +108,12 @@ final class AppDetector {
             let category: AppCategory
             switch overrideType {
             case .imkClient:  category = .native
-            case .cgEvent:    category = .browser
+            case .cgEvent:
+                if electronBundleIds.contains(bundleIdentifier) {
+                    category = .electron
+                } else {
+                    category = .browser
+                }
             case .clipboard:  category = .webAppStubborn
             }
             return (category, overrideType)

@@ -103,8 +103,19 @@ final class CGEventStrategy: OutputStrategy {
         // Phát hiện ứng dụng phía trước và loại ứng dụng
         let bundleId = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? ""
         let appCategory = AppDetector.detect(bundleIdentifier: bundleId).category
-        let isChromiumLike = PreferencesManager.shared.fixChromium && (appCategory == .browser || appCategory == .electron)
-        let isSafariOrFirefox = (appCategory == .browser) && (bundleId.lowercased().contains("safari") || bundleId.lowercased().contains("firefox") || bundleId.lowercased().contains("mozilla"))
+        // ⚠️ KHÔNG bao gồm .electron vì Electron apps (VSCode, Discord, Slack...)
+        // có terminal tích hợp mà Shift+LeftArrow tạo escape sequence \e[1;2D
+        let lowerBundle = bundleId.lowercased()
+        let isEditorOrTerminal = lowerBundle.contains("code") ||
+                                 lowerBundle.contains("term") ||
+                                 lowerBundle.contains("warp") ||
+                                 lowerBundle.contains("ghostty") ||
+                                 lowerBundle.contains("kitty") ||
+                                 lowerBundle.contains("alacritty") ||
+                                 (appCategory == .electron)
+
+        let isChromiumLike = PreferencesManager.shared.fixChromium && (appCategory == .browser) && !isEditorOrTerminal
+        let isSafariOrFirefox = (appCategory == .browser) && (lowerBundle.contains("safari") || lowerBundle.contains("firefox") || lowerBundle.contains("mozilla"))
         let isChromium = isChromiumLike && !isSafariOrFirefox
 
         var shouldUseSelectionReplacement = false
@@ -288,6 +299,12 @@ final class CGEventStrategy: OutputStrategy {
     }
 
     // MARK: - Utility
+
+    /// Cập nhật trạng thái tracking nội bộ mà KHÔNG gửi CGEvent nào.
+    /// Dùng khi phím được pass-through tự nhiên (không có biến đổi tiếng Việt).
+    func trackText(_ text: String) {
+        currentCommittedText = text
+    }
 
     /// Reset trạng thái tracking.
     /// Gọi khi commit, thay đổi focus, hoặc cần đồng bộ lại state.

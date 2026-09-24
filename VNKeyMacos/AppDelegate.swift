@@ -474,10 +474,19 @@ final class GlobalEventTapManager {
         let oldText = buffer.processedText
 
         // Thêm vào buffer
-        buffer.append(char)
+        let result = buffer.append(char)
         let newText = buffer.processedText
 
-        // Luôn gạt bỏ phím gốc và giả lập qua hàng đợi CGEvent để tránh tranh chấp (race condition)
+        // Kiểm tra: nếu ký tự vừa gõ chỉ được append đơn giản
+        // (không có biến đổi tiếng Việt nào), ta pass-through phím gốc
+        // để tránh race condition trên terminal và các app nhạy cảm.
+        // Chỉ cần cập nhật tracking state để delta tính đúng cho lần sau.
+        if !result.hasTransformation && newText == oldText + String(char) {
+            trackStrategy(newText: newText)
+            return false  // pass-through phím gốc
+        }
+
+        // Có biến đổi thực sự → nuốt phím gốc và gửi lại qua CGEvent
         updateStrategy(newText: newText, oldText: oldText)
         return true
     }
@@ -546,6 +555,22 @@ final class GlobalEventTapManager {
 
         let strategy = OutputStrategyFactory.make(for: strategyType)
         strategy.updateInline(oldText: oldText, newText: newText)
+    }
+
+    /// Cập nhật tracking state của strategy mà KHÔNG gửi output event.
+    /// Dùng khi phím được pass-through tự nhiên (không biến đổi tiếng Việt).
+    private func trackStrategy(newText: String) {
+        let strategyType: OutputStrategyType
+        if let frontApp = NSWorkspace.shared.frontmostApplication,
+           let bundleId = frontApp.bundleIdentifier {
+            let appStrategy = AppDetector.strategyType(forBundleIdentifier: bundleId)
+            strategyType = (appStrategy == .imkClient) ? .cgEvent : appStrategy
+        } else {
+            strategyType = .cgEvent
+        }
+
+        let strategy = OutputStrategyFactory.make(for: strategyType)
+        strategy.trackText(newText)
     }
 
     // MARK: - Helper Checkers

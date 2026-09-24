@@ -269,6 +269,14 @@ final class ClipboardStrategy: OutputStrategy {
 
     // MARK: - Utility
 
+    /// Cập nhật trạng thái tracking nội bộ mà KHÔNG gửi output event nào.
+    /// Dùng khi phím được pass-through tự nhiên (không có biến đổi tiếng Việt).
+    func trackText(_ text: String) {
+        outputQueue.async { [weak self] in
+            self?.currentCommittedText = text
+        }
+    }
+
     func resetState() {
         outputQueue.async { [weak self] in
             self?.currentCommittedText = ""

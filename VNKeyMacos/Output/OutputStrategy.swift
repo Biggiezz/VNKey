@@ -44,6 +44,13 @@ protocol OutputStrategy: AnyObject {
 
     /// Reset bộ nhớ tạm theo dõi văn bản hiện tại.
     func resetState()
+
+    /// Cập nhật trạng thái tracking nội bộ mà KHÔNG gửi output event nào.
+    /// Dùng khi phím được pass-through tự nhiên (không có biến đổi tiếng Việt),
+    /// để đồng bộ state tracking với text thực tế trên màn hình.
+    ///
+    /// - Parameter text: Text hiện tại sau khi phím pass-through.
+    func trackText(_ text: String)
 }
 
 // MARK: - Default Implementation
@@ -56,6 +63,9 @@ extension OutputStrategy {
 
     /// Reset bộ nhớ tạm
     func resetState() {}
+
+    /// Mặc định: không làm gì (cho strategies không cần tracking).
+    func trackText(_ text: String) {}
 }
 
 // MARK: - OutputStrategyFactory
