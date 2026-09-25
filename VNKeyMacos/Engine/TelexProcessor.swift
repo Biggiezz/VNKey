@@ -64,24 +64,7 @@ final class TelexProcessor: InputMethodProcessor {
         if lower == "d" {
             guard !result.isEmpty else { return false }
             
-            // Tìm ký tự 'd' hoặc 'đ' ở đầu từ (result[0])
-            let firstChar = result[0]
-            let firstLower = Character(firstChar.lowercased())
-            
-            if firstLower == "d" {
-                // Biến đổi d/D ở đầu -> đ/Đ
-                let isUpper = firstChar.isUppercase
-                result[0] = isUpper ? "\u{0110}" : "\u{0111}"
-                return true
-            } else if VietConstants.isDBar(firstChar) {
-                // Undo đ/Đ ở đầu -> d/D và thêm 'd' thô ở cuối
-                let isUpper = firstChar == "\u{0110}"
-                result[0] = isUpper ? "D" : "d"
-                result.append(char)
-                return true
-            }
-            
-            // Fallback: nếu d không nằm ở đầu từ, ta biến đổi d ở vị trí cuối cùng (như double press d bình thường)
+            // Ưu tiên 1: nếu d nằm ngay sau d/D hoặc đ/Đ ở cuối từ (double press d liên tiếp)
             if let lastChar = result.last {
                 let lastLower = Character(lastChar.lowercased())
                 if lastLower == "d" {
@@ -95,6 +78,26 @@ final class TelexProcessor: InputMethodProcessor {
                     return true
                 }
             }
+            
+            // Ưu tiên 2: xử lý d ở đầu từ (result[0])
+            // CHỈ áp dụng khi từ ngắn (<= 2 ký tự, vd: "do" + d -> "đo") và KHÔNG có phụ âm nào khác xen vào
+            // Tuyệt đối không áp dụng cho từ dài/tiếng Anh như "download", "demand", "diamond", "discord", "dashboard"
+            let hasOtherConsonants = result.dropFirst().contains(where: { VietConstants.isConsonant($0) || VietConstants.isDBar($0) })
+            if !hasOtherConsonants && result.count <= 2 {
+                let firstChar = result[0]
+                let firstLower = Character(firstChar.lowercased())
+                if firstLower == "d" {
+                    let isUpper = firstChar.isUppercase
+                    result[0] = isUpper ? "\u{0110}" : "\u{0111}"
+                    return true
+                } else if VietConstants.isDBar(firstChar) {
+                    let isUpper = firstChar == "\u{0110}"
+                    result[0] = isUpper ? "D" : "d"
+                    result.append(char)
+                    return true
+                }
+            }
+            
             return false
         }
 
@@ -198,9 +201,18 @@ final class TelexProcessor: InputMethodProcessor {
                     }
                 }
                 
-                // Nếu không kết hợp được hoặc là lượt gõ lẻ thứ 3, 5... -> thêm chữ ư/Ư standalone
-                result.append(isUpper ? "Ư" : "ư")
-                return true
+                // Nếu không kết hợp được với nguyên âm:
+                // Chỉ biến 'w' thành 'ư' standalone nếu trong từ HIỆN CHƯA CÓ NGUYÊN ÂM NÀO,
+                // và các phụ âm đứng trước (nếu có) tạo thành một onset hợp lệ trong tiếng Việt (vd: "", "t", "tr", "th", "nh"...).
+                // Nếu từ đã có nguyên âm (như "pass", "view", "new", "network") hoặc onset không hợp lệ:
+                // 'w' giữ nguyên là chữ 'w' thường và trả về false (không consume).
+                let hasVowel = result.contains(where: { VietConstants.isVowel($0) })
+                let onsetString = String(result)
+                if consecutiveWCount > 1 || (!hasVowel && VietConstants.isValidOnset(onsetString)) {
+                    result.append(isUpper ? "Ư" : "ư")
+                    return true
+                }
+                return false
             } else {
                 // ── Lượt gõ chẵn (2, 4, 6...): undo hoặc chuyển ư -> w ──
                 let firstWIndex = currentIndex - consecutiveWCount + 1
@@ -256,10 +268,34 @@ final class TelexProcessor: InputMethodProcessor {
         _ baseChar: Character,
         in chars: [Character]
     ) -> Int? {
+        // 1. Thu thập tất cả vị trí nguyên âm trong chars
+        var vowelIndices: [Int] = []
+        for (i, ch) in chars.enumerated() {
+            if VietConstants.isVowel(ch) {
+                vowelIndices.append(i)
+            }
+        }
+        
+        guard let firstVowel = vowelIndices.first, let lastVowel = vowelIndices.last else {
+            return nil
+        }
+        
+        // 2. Nếu các nguyên âm không liên tục nhau (ngăn cách bởi phụ âm -> từ đa âm tiết tiếng Anh như "banana", "delete")
+        if lastVowel - firstVowel + 1 != vowelIndices.count {
+            return nil
+        }
+        
+        // 3. Kiểm tra phụ âm đầu (onset) của từ
+        if firstVowel > 0 {
+            let onset = String(chars[0..<firstVowel])
+            if !VietConstants.isValidOnset(onset) {
+                return nil
+            }
+        }
+        
+        // 4. Tìm nguyên âm khớp từ cuối lên
         for i in stride(from: chars.count - 1, through: 0, by: -1) {
             let ch = chars[i]
-            
-            // Nếu gặp một nguyên âm khác baseChar -> dừng luôn vì đã chuyển sang âm tiết khác/vần khác
             if VietConstants.isVowel(ch) {
                 let decomp = VietConstants.decompose(ch)
                 let base = decomp?.base ?? Character(ch.lowercased())
@@ -282,17 +318,47 @@ final class TelexProcessor: InputMethodProcessor {
     /// Chỉ a, o, u mới nhận được 'w'.
     private func findLastVowelForW(in chars: [Character]) -> Int? {
         let wTargets: Set<Character> = ["a", "o", "u"]
-        var consonantCount = 0
         
+        // 1. Thu thập tất cả vị trí nguyên âm trong chars
+        var vowelIndices: [Int] = []
+        for (i, ch) in chars.enumerated() {
+            if VietConstants.isVowel(ch) {
+                vowelIndices.append(i)
+            }
+        }
+        
+        guard let firstVowel = vowelIndices.first, let lastVowel = vowelIndices.last else {
+            return nil
+        }
+        
+        // 2. Không áp dụng nếu từ có nhiều cụm nguyên âm rời rạc (từ đa âm tiết tiếng Anh như "password", "software", "network")
+        if lastVowel - firstVowel + 1 != vowelIndices.count {
+            return nil
+        }
+        
+        // 3. Kiểm tra phụ âm đầu (onset): phải là onset hợp lệ trong tiếng Việt
+        // (Tránh các từ tiếng Anh bắt đầu bằng consonant cluster: draw, straw, slow, flow, blow, glow, grow, crow, throw, show, snow)
+        if firstVowel > 0 {
+            let onset = String(chars[0..<firstVowel])
+            if !VietConstants.isValidOnset(onset) {
+                return nil
+            }
+        }
+        
+        // 4. Kiểm tra phần phụ âm đuôi (suffix/coda sau nguyên âm cuối)
+        let suffixChars = chars[(lastVowel + 1)...]
+        let suffix = String(suffixChars).lowercased()
+        
+        // Nếu có phụ âm sau nguyên âm: bắt buộc phải là coda hợp lệ trong tiếng Việt
+        // (Tránh "pass" có đuôi "ss", "fast" có đuôi "st", "task" có đuôi "sk", "hard" có đuôi "rd"...)
+        if !suffix.isEmpty && !VietConstants.validCodas.contains(suffix) {
+            return nil
+        }
+        
+        // 5. Tìm nguyên âm wTarget gần nhất
         for i in stride(from: chars.count - 1, through: 0, by: -1) {
             let ch = chars[i]
-            
-            // Cho phép đi qua tối đa 2 phụ âm cuối của một âm tiết tiếng Việt (ví dụ: c trong 'được', ng trong 'đường')
             if VietConstants.isConsonant(ch) || VietConstants.isDBar(ch) {
-                consonantCount += 1
-                if consonantCount > 2 {
-                    break
-                }
                 continue
             }
             
@@ -305,9 +371,17 @@ final class TelexProcessor: InputMethodProcessor {
             }
             
             if wTargets.contains(baseChar) {
+                // Kiểm tra tính tương thích ngữ âm tiếng Việt khi có coda:
+                // 'ă' chỉ đi với các coda: c, m, n, ng, p, t (không đi với ch, nh)
+                if baseChar == "a" && !suffix.isEmpty {
+                    let validBreveCodas: Set<String> = ["c", "m", "n", "ng", "p", "t"]
+                    if !validBreveCodas.contains(suffix) {
+                        return nil
+                    }
+                }
                 return i
             } else {
-                // Gặp nguyên âm khác (ví dụ: i, e, y) -> nghĩa là đã chuyển sang âm tiết khác, không được kết hợp
+                // Gặp nguyên âm khác (ví dụ: e, i, y) -> không kết hợp được
                 break
             }
         }

@@ -159,6 +159,32 @@ final class VNIProcessor: InputMethodProcessor {
         _ targets: Set<Character>,
         in chars: [Character]
     ) -> Int? {
+        // 1. Thu thập tất cả vị trí nguyên âm trong chars
+        var vowelIndices: [Int] = []
+        for (i, ch) in chars.enumerated() {
+            if VietConstants.isVowel(ch) {
+                vowelIndices.append(i)
+            }
+        }
+        
+        guard let firstVowel = vowelIndices.first, let lastVowel = vowelIndices.last else {
+            return nil
+        }
+        
+        // 2. Nếu các nguyên âm không liên tục nhau (ngăn cách bởi phụ âm -> từ đa âm tiết tiếng Anh như "banana", "delete")
+        if lastVowel - firstVowel + 1 != vowelIndices.count {
+            return nil
+        }
+        
+        // 3. Kiểm tra phụ âm đầu (onset) của từ
+        if firstVowel > 0 {
+            let onset = String(chars[0..<firstVowel])
+            if !VietConstants.isValidOnset(onset) {
+                return nil
+            }
+        }
+        
+        // 4. Tìm nguyên âm khớp từ cuối lên
         for i in stride(from: chars.count - 1, through: 0, by: -1) {
             let ch = chars[i]
             let base: Character

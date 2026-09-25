@@ -47,13 +47,12 @@ final class VietnameseEngineTests: XCTestCase {
         XCTAssertEqual(processTelex("w"), "ư")
         XCTAssertEqual(processTelex("W"), "Ư")
         XCTAssertEqual(processTelex("tw"), "tư")
-        XCTAssertEqual(processTelex("ew"), "eư")
+        XCTAssertEqual(processTelex("ew"), "ew")
         
         // Test 'ww' double-press and 'www' undo cases
         XCTAssertEqual(processTelex("ww"), "w")
         XCTAssertEqual(processTelex("WW"), "W")
         XCTAssertEqual(processTelex("tww"), "tw")
-        XCTAssertEqual(processTelex("eww"), "ew")
         XCTAssertEqual(processTelex("uww"), "uw")
         XCTAssertEqual(processTelex("www"), "wư")
         XCTAssertEqual(processTelex("wwww"), "ww")
@@ -278,5 +277,78 @@ final class VietnameseEngineTests: XCTestCase {
         XCTAssertEqual(processVNI("toan2"), "toàn")
         XCTAssertEqual(processVNI("cor1"), "cor1")
         XCTAssertEqual(processVNI("cor6"), "cor6")
+        XCTAssertEqual(processVNI("banana6"), "banana6")
+    }
+
+    // MARK: - Password & English Words with W
+    
+    func testPasswordWordTyping() {
+        // Gõ "password":
+        // 1. Khi gõ tới 'w', không được dính dấu 'ă' vào chữ 'a' (không thành "păssw" hay "passư")
+        XCTAssertFalse(processTelex("passw").contains("ă"))
+        XCTAssertFalse(processTelex("passw").contains("ư"))
+        XCTAssertEqual(processTelex("password"), "password")
+        
+        // Các từ tiếng Anh tương tự có chứa 'w'
+        XCTAssertEqual(processTelex("crossword"), "crossword")
+        XCTAssertEqual(processTelex("glassware"), "glassware")
+        XCTAssertEqual(processTelex("hardware"), "hardware")
+        XCTAssertEqual(processTelex("software"), "software")
+        XCTAssertEqual(processTelex("network"), "network")
+        XCTAssertEqual(processTelex("forward"), "forward")
+        XCTAssertEqual(processTelex("reward"), "reward")
+        XCTAssertEqual(processTelex("toward"), "toward")
+        XCTAssertEqual(processTelex("keyword"), "keyword")
+        XCTAssertEqual(processTelex("answer"), "answer")
+    }
+
+    func testEnglishWordsWithWEndingVowels() {
+        // 'w' sau các nguyên âm không ghép với breve/horn (e, i, y)
+        XCTAssertEqual(processTelex("new"), "new")
+        XCTAssertEqual(processTelex("view"), "view")
+        XCTAssertEqual(processTelex("few"), "few")
+        XCTAssertEqual(processTelex("dew"), "dew")
+        XCTAssertEqual(processTelex("review"), "review")
+        XCTAssertEqual(processTelex("interview"), "interview")
+        XCTAssertEqual(processTelex("news"), "news")
+    }
+
+    func testEnglishWordsWithInvalidOnsetsAndW() {
+        // Onset tiếng Anh không hợp lệ trong tiếng Việt -> giữ nguyên không bị áp dấu
+        XCTAssertEqual(processTelex("draw"), "draw")
+        XCTAssertEqual(processTelex("straw"), "straw")
+        XCTAssertEqual(processTelex("crawl"), "crawl")
+        XCTAssertEqual(processTelex("slow"), "slow")
+        XCTAssertEqual(processTelex("flow"), "flow")
+        XCTAssertEqual(processTelex("blow"), "blow")
+        XCTAssertEqual(processTelex("glow"), "glow")
+        XCTAssertEqual(processTelex("grow"), "grow")
+        XCTAssertEqual(processTelex("crow"), "crow")
+        XCTAssertEqual(processTelex("throw"), "throw")
+        XCTAssertEqual(processTelex("show"), "show")
+        XCTAssertEqual(processTelex("snow"), "snow")
+        XCTAssertEqual(processTelex("brown"), "brown")
+        XCTAssertEqual(processTelex("crown"), "crown")
+        XCTAssertEqual(processTelex("clown"), "clown")
+    }
+
+    func testEnglishMultiSyllableWordsDoublePress() {
+        // Từ tiếng Anh đa âm tiết: không bị biến đổi khi gõ double-press vowel
+        XCTAssertEqual(processTelex("banana"), "banana")
+        XCTAssertEqual(processTelex("canada"), "canada")
+        XCTAssertEqual(processTelex("delete"), "delete")
+        XCTAssertEqual(processTelex("serene"), "serene")
+        XCTAssertEqual(processTelex("monopoly"), "monopoly")
+        XCTAssertEqual(processTelex("tomorrow"), "tomorrow")
+    }
+
+    func testEnglishWordsWithD() {
+        // Từ tiếng Anh có 'd' không bị biến chữ 'd' đầu tiên thành 'đ'
+        XCTAssertEqual(processTelex("download"), "download")
+        XCTAssertEqual(processTelex("dashboard"), "dashboard")
+        XCTAssertEqual(processTelex("diamond"), "diamond")
+        XCTAssertEqual(processTelex("discord"), "discord")
+        XCTAssertEqual(processTelex("demand"), "demand")
+        XCTAssertEqual(processTelex("david"), "david")
     }
 }

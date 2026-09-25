@@ -88,10 +88,11 @@ final class TelexProcessorTests: XCTestCase {
     }
 
     func testWModifierNoMatch() {
-        // 'w' sau 'e' → không match với e, và 'w' gõ đơn lẻ thì thành 'ư'
+        // 'w' sau 'e' → không match với e, và vì từ đã có nguyên âm nên 'w' giữ nguyên là chữ 'w'
         var result: [Character] = ["e"]
-        XCTAssertTrue(processor.tryApplyDiacritic("w", to: &result))
-        XCTAssertEqual(String(result), "eư")
+        XCTAssertFalse(processor.tryApplyDiacritic("w", to: &result))
+        XCTAssertEqual(String(result), "e")
+        XCTAssertEqual(applyDiacritic("w", to: "e"), "ew")
     }
 
     func testWStandalone() {
@@ -257,6 +258,95 @@ final class TelexProcessorTests: XCTestCase {
         // opt + o -> opto (no change because pt is not a valid coda)
         var result: [Character] = ["o", "p", "t"]
         XCTAssertFalse(processor.tryApplyDiacritic("o", to: &result))
-        XCTAssertEqual(String(result), "opt") // wait, if not consumed, it'll be opt
+        XCTAssertEqual(String(result), "opt")
+    }
+
+    func testWAfterInvalidCodaNotApplied() {
+        // "pass" + "w" -> KHÔNG được biến "a" thành "ă" vì "ss" không phải coda tiếng Việt
+        var resultPass: [Character] = ["p", "a", "s", "s"]
+        XCTAssertFalse(processor.tryApplyDiacritic("w", to: &resultPass))
+        XCTAssertEqual(String(resultPass), "pass")
+        XCTAssertEqual(applyDiacritic("w", to: "pass"), "passw")
+
+        // "fast" + "w" -> không biến "a" thành "ă" vì "st" không phải coda
+        var resultFast: [Character] = ["f", "a", "s", "t"]
+        XCTAssertFalse(processor.tryApplyDiacritic("w", to: &resultFast))
+        XCTAssertEqual(String(resultFast), "fast")
+
+        // "task" + "w" -> không biến "a" thành "ă" vì "sk" không phải coda
+        var resultTask: [Character] = ["t", "a", "s", "k"]
+        XCTAssertFalse(processor.tryApplyDiacritic("w", to: &resultTask))
+        XCTAssertEqual(String(resultTask), "task")
+
+        // "hard" + "w" -> không biến "a" thành "ă" vì "rd" không phải coda
+        var resultHard: [Character] = ["h", "a", "r", "d"]
+        XCTAssertFalse(processor.tryApplyDiacritic("w", to: &resultHard))
+        XCTAssertEqual(String(resultHard), "hard")
+
+        // "card" + "w" -> không biến "a" thành "ă" vì "rd" không phải coda
+        var resultCard: [Character] = ["c", "a", "r", "d"]
+        XCTAssertFalse(processor.tryApplyDiacritic("w", to: &resultCard))
+        XCTAssertEqual(String(resultCard), "card")
+
+        // "cost" + "w" -> không biến "o" thành "ơ" vì "st" không phải coda
+        var resultCost: [Character] = ["c", "o", "s", "t"]
+        XCTAssertFalse(processor.tryApplyDiacritic("w", to: &resultCost))
+        XCTAssertEqual(String(resultCost), "cost")
+    }
+
+    func testWAfterInvalidOnsetNotApplied() {
+        // "dra" + "w" -> onset "dr" không hợp lệ tiếng Việt -> giữ nguyên "draw"
+        var resultDraw: [Character] = ["d", "r", "a"]
+        XCTAssertFalse(processor.tryApplyDiacritic("w", to: &resultDraw))
+        XCTAssertEqual(String(resultDraw), "dra")
+        XCTAssertEqual(applyDiacritic("w", to: "dra"), "draw")
+
+        // "slo" + "w" -> onset "sl" không hợp lệ -> "slow"
+        var resultSlow: [Character] = ["s", "l", "o"]
+        XCTAssertFalse(processor.tryApplyDiacritic("w", to: &resultSlow))
+        XCTAssertEqual(String(resultSlow), "slo")
+        XCTAssertEqual(applyDiacritic("w", to: "slo"), "slow")
+
+        // "flo" + "w" -> onset "fl" không hợp lệ -> "flow"
+        var resultFlow: [Character] = ["f", "l", "o"]
+        XCTAssertFalse(processor.tryApplyDiacritic("w", to: &resultFlow))
+        XCTAssertEqual(String(resultFlow), "flo")
+        XCTAssertEqual(applyDiacritic("w", to: "flo"), "flow")
+
+        // "blo" + "w" -> onset "bl" không hợp lệ -> "blow"
+        var resultBlow: [Character] = ["b", "l", "o"]
+        XCTAssertFalse(processor.tryApplyDiacritic("w", to: &resultBlow))
+        XCTAssertEqual(String(resultBlow), "blo")
+        XCTAssertEqual(applyDiacritic("w", to: "blo"), "blow")
+
+        // "stra" + "w" -> onset "str" không hợp lệ -> "straw"
+        var resultStraw: [Character] = ["s", "t", "r", "a"]
+        XCTAssertFalse(processor.tryApplyDiacritic("w", to: &resultStraw))
+        XCTAssertEqual(String(resultStraw), "stra")
+        XCTAssertEqual(applyDiacritic("w", to: "stra"), "straw")
+    }
+
+    func testDoublePressMultiSyllableWord() {
+        // "banana" -> double-press 'a' sau "banan" không được biến thành "banân"
+        var resultBanana: [Character] = ["b", "a", "n", "a", "n"]
+        XCTAssertFalse(processor.tryApplyDiacritic("a", to: &resultBanana))
+        XCTAssertEqual(String(resultBanana), "banan")
+
+        // "delete" -> double-press 'e' sau "delet" không được biến thành "delête"
+        var resultDelete: [Character] = ["d", "e", "l", "e", "t"]
+        XCTAssertFalse(processor.tryApplyDiacritic("e", to: &resultDelete))
+        XCTAssertEqual(String(resultDelete), "delet")
+    }
+
+    func testDBarDoesNotCorruptLongWords() {
+        // "download" -> khi gõ chữ 'd' cuối cùng, không được biến chữ 'd' đầu tiên thành 'đ'
+        var resultDownload: [Character] = ["d", "o", "w", "n", "l", "o", "a"]
+        XCTAssertFalse(processor.tryApplyDiacritic("d", to: &resultDownload))
+        XCTAssertEqual(String(resultDownload), "downloa")
+
+        // "dashboard" -> không được biến chữ 'd' đầu tiên thành 'đ'
+        var resultDashboard: [Character] = ["d", "a", "s", "h", "b", "o", "a", "r"]
+        XCTAssertFalse(processor.tryApplyDiacritic("d", to: &resultDashboard))
+        XCTAssertEqual(String(resultDashboard), "dashboar")
     }
 }

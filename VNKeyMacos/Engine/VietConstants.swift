@@ -239,6 +239,40 @@ enum VietConstants {
         "t", "v",
     ]
 
+    /// Kiểm tra phụ âm đầu có hợp lệ trong tiếng Việt không.
+    /// Chuỗi rỗng "" là hợp lệ (nguyên âm đứng đầu âm tiết, vd: "an", "em").
+    static func isValidOnset(_ onset: String) -> Bool {
+        let lower = onset.lowercased()
+        if lower.isEmpty { return true }
+        if lower == "đ" || lower == "q" { return true }
+        return validOnsets.contains(lower)
+    }
+
+    /// Kiểm tra phụ âm cuối có hợp lệ trong tiếng Việt không.
+    /// Chuỗi rỗng "" là hợp lệ (âm tiết mở, vd: "ba", "ca").
+    static func isValidCoda(_ coda: String) -> Bool {
+        let lower = coda.lowercased()
+        if lower.isEmpty { return true }
+        return validCodas.contains(lower)
+    }
+
+    /// Kiểm tra chuỗi có phải từ đa âm tiết (có các nguyên âm bị ngăn cách bởi phụ âm) không.
+    /// Trong tiếng Việt, mỗi từ đơn (token) chỉ có duy nhất 1 âm tiết (tối đa 1 cụm nguyên âm liên tục).
+    /// Nếu có từ 2 cụm nguyên âm trở lên (như "password", "download", "software", "banana", "delete"),
+    /// đó chắc chắn 100% là từ tiếng Anh / ngoại lai.
+    static func isMultiSyllabic(_ chars: [Character]) -> Bool {
+        var vowelIndices: [Int] = []
+        for (i, ch) in chars.enumerated() {
+            if isVowel(ch) {
+                vowelIndices.append(i)
+            }
+        }
+        guard let first = vowelIndices.first, let last = vowelIndices.last else {
+            return false
+        }
+        return last - first + 1 != vowelIndices.count
+    }
+
     // MARK: - Telex Key Mappings
 
     /// Telex: Tone keys. Chỉ áp dụng khi đã có nguyên âm trước đó.
