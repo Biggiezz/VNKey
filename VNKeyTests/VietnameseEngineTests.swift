@@ -261,6 +261,30 @@ final class VietnameseEngineTests: XCTestCase {
         XCTAssertEqual(processTelex("ussers"), "users")
     }
 
+    func testMultipleTonesInWord() {
+        // Test trường hợp từ có nhiều tone keys hoặc đã có dấu thanh trước đó:
+        // Không được dính dấu thanh vào từ hoặc chữ đằng trước nó
+        XCTAssertEqual(processTelex("statstu"), "statstu")
+        XCTAssertEqual(processTelex("statstus"), "statstus")
+        XCTAssertEqual(processTelex("státstu"), "státstu")
+        XCTAssertEqual(processTelex("státstus"), "státstus")
+        XCTAssertEqual(processTelex("casis"), "casis")
+        XCTAssertEqual(processTelex("casif"), "casif")
+        XCTAssertEqual(processTelex("toanst"), "toanst")
+        
+        // Delayed diacritic trên tam trùng âm (iêu, uôi, uây...):
+        XCTAssertEqual(processTelex("chièue"), "chiều")
+        XCTAssertEqual(processTelex("chieufe"), "chiều")
+        XCTAssertEqual(processTelex("chieuse"), "chiếu")
+        XCTAssertEqual(processTelex("chieue"), "chiêu")
+        XCTAssertEqual(processTelex("chièuef"), "chiều")
+        XCTAssertEqual(processTelex("chièues"), "chiếu")
+        XCTAssertEqual(processTelex("tuoio"), "tuôi")
+        XCTAssertEqual(processTelex("tuoiro"), "tuổi")
+        XCTAssertEqual(processTelex("nguoifw"), "người")
+        XCTAssertEqual(processTelex("nguoiwf"), "người")
+    }
+
     func testValidVietnameseWordsPreserved() {
         XCTAssertEqual(processTelex("toanf"), "toàn")
         XCTAssertEqual(processTelex("toans"), "toán")

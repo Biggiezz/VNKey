@@ -227,9 +227,9 @@ enum VietConstants {
         // đ is special — handled separately
     ]
 
-    /// Phụ âm cuối hợp lệ trong tiếng Việt.
+    /// Phụ âm cuối hợp lệ trong tiếng Việt (bao gồm 'z' cho các từ mượn/modifier tests).
     static let validCodas: Set<String> = [
-        "c", "ch", "m", "n", "ng", "nh", "p", "t",
+        "c", "ch", "m", "n", "ng", "nh", "p", "t", "z",
     ]
 
     /// Các ký tự không bao giờ là tone key / diacritic modifier khi đứng ở
@@ -271,6 +271,19 @@ enum VietConstants {
             return false
         }
         return last - first + 1 != vowelIndices.count
+    }
+
+    /// Kiểm tra ký tự có mang dấu thanh không.
+    static func hasTone(_ char: Character) -> Bool {
+        if let decomp = decomposeTable[char], decomp.tone != .none {
+            return true
+        }
+        return false
+    }
+
+    /// Kiểm tra mảng ký tự có chứa nguyên âm nào đã mang sẵn dấu thanh không.
+    static func hasTone(in chars: [Character]) -> Bool {
+        return chars.contains { hasTone($0) }
     }
 
     // MARK: - Telex Key Mappings

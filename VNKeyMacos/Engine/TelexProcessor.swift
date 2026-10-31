@@ -115,14 +115,21 @@ final class TelexProcessor: InputMethodProcessor {
 
                 if targetBase == lower {
                     if currentDiacritic == diacritic {
-                        // Undo: â + a → aa (xóa dấu mũ, thêm ký tự)
-                        let plain = VietConstants.compose(
-                            base: targetBase, diacritic: .none,
-                            tone: currentTone, uppercase: targetIsUpper
-                        ) ?? target
-                        result[lastIdx] = plain
-                        result.append(char)
-                        return true
+                        // CHỈ undo khi target nằm ở ngay cuối result (lastIdx == result.count - 1)
+                        // Nếu target nằm phía trước (cách bởi nguyên âm hoặc phụ âm khác, vd: 'e' trong 'chiêu', 'chiều')
+                        // thì giữ nguyên dấu mũ, không undo thành chièue!
+                        if lastIdx == result.count - 1 {
+                            let plain = VietConstants.compose(
+                                base: targetBase, diacritic: .none,
+                                tone: currentTone, uppercase: targetIsUpper
+                            ) ?? target
+                            result[lastIdx] = plain
+                            result.append(char)
+                            return true
+                        } else {
+                            // Giữ nguyên từ đã có dấu mũ
+                            return true
+                        }
                     } else {
                         // Apply: a + a → â
                         if let composed = VietConstants.compose(
@@ -293,22 +300,20 @@ final class TelexProcessor: InputMethodProcessor {
             }
         }
         
-        // 4. Tìm nguyên âm khớp từ cuối lên
+        // 4. Tìm nguyên âm khớp trong cụm nguyên âm từ cuối lên (hỗ trợ cả tam trùng âm như iêu, uôi, uây...)
         for i in stride(from: chars.count - 1, through: 0, by: -1) {
             let ch = chars[i]
             if VietConstants.isVowel(ch) {
                 let decomp = VietConstants.decompose(ch)
                 let base = decomp?.base ?? Character(ch.lowercased())
-                if base != baseChar {
-                    break
+                if base == baseChar {
+                    // Kiểm tra xem suffix sau nguyên âm cuối cùng có phải là coda hợp lệ không
+                    let suffixChars = chars[(lastVowel + 1)...]
+                    let suffix = String(suffixChars).lowercased()
+                    if suffix.isEmpty || VietConstants.validCodas.contains(suffix) {
+                        return i
+                    }
                 }
-                
-                // Nếu đúng là baseChar, kiểm tra xem suffix có phải là coda hợp lệ không
-                let suffix = String(chars[(i + 1)...]).lowercased()
-                if suffix.isEmpty || VietConstants.validCodas.contains(suffix) {
-                    return i
-                }
-                break
             }
         }
         return nil
@@ -380,6 +385,17 @@ final class TelexProcessor: InputMethodProcessor {
                     }
                 }
                 return i
+            } else if baseChar == "i" && i >= 2 {
+                // Hỗ trợ cụm tam trùng âm "uoi" / "ươi" (người, cười, mười, tươi, bưởi...):
+                // Nếu gặp 'i' ở cuối cụm nguyên âm và trước nó là 'o' và 'u' (vd: uoi),
+                // cho phép bỏ qua 'i' để ghép 'w' vào 'o' và 'u' (tạo thành ươ)
+                let prev1 = VietConstants.decompose(chars[i - 1])?.base ?? Character(chars[i - 1].lowercased())
+                let prev2 = VietConstants.decompose(chars[i - 2])?.base ?? Character(chars[i - 2].lowercased())
+                if prev1 == "o" && prev2 == "u" {
+                    continue
+                } else {
+                    break
+                }
             } else {
                 // Gặp nguyên âm khác (ví dụ: e, i, y) -> không kết hợp được
                 break

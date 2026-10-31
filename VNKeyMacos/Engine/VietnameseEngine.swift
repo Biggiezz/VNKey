@@ -107,19 +107,43 @@ final class VietnameseEngine: Sendable {
                     }
                 }
                 
-                // Xử lý toggle: nếu gõ cùng tone 2 lần → undo
+                // 1. Xử lý toggle undo:
+                // CHỈ toggle undo khi gõ liên tiếp ngay sau tone trước (chưa có ký tự xen giữa)
                 if let existing = pendingTone, existing == tone, tone != .none {
-                    // Undo: xóa dấu, thêm ký tự literal
-                    pendingTone = nil
-                    pendingToneChar = nil
-                    pendingToneIndex = nil
+                    if pendingToneIndex == result.count {
+                        pendingTone = nil
+                        pendingToneChar = nil
+                        pendingToneIndex = nil
+                        result.append(char)
+                        anyTransformation = true
+                        continue
+                    } else {
+                        result.append(char)
+                        continue
+                    }
+                }
+
+                // 2. Không cho phép gõ đè nhiều dấu thanh trong cùng 1 từ nếu đã có ký tự xen giữa
+                if pendingTone != nil && pendingTone != Tone.none && pendingToneIndex != result.count {
                     result.append(char)
-                } else {
+                    continue
+                }
+
+                // 3. Nếu trong result đã có nguyên âm mang sẵn dấu thanh:
+                if VietConstants.hasTone(in: result) {
+                    // Cập nhật lại dấu thanh mới (hoặc áp lại dấu thanh):
+                    result = toneManager.removeTone(from: result)
                     pendingTone = tone
                     pendingToneChar = char
                     pendingToneIndex = result.count
                     anyTransformation = true
+                    continue
                 }
+
+                pendingTone = tone
+                pendingToneChar = char
+                pendingToneIndex = result.count
+                anyTransformation = true
                 continue
             }
 
@@ -132,7 +156,7 @@ final class VietnameseEngine: Sendable {
 
         // ── Bước 3: Áp dụng dấu thanh ──
         if let tone = pendingTone {
-            if isValidTonePosition(in: result) {
+            if tone != Tone.none && isValidTonePosition(in: result, tone: tone) {
                 result = toneManager.applyTone(
                     to: result,
                     tone: tone,
@@ -148,10 +172,29 @@ final class VietnameseEngine: Sendable {
             }
         }
 
+        // ── Bước 4: Guard từ đa âm tiết tiếng Anh / ngoại lai ──
+        let rawStr = String(rawInput).lowercased()
+        let hasTransformedChar = result.contains { ch in
+            if let decomp = VietConstants.decompose(ch) {
+                return decomp.diacritic != .none || decomp.tone != .none
+            }
+            return VietConstants.isDBar(ch)
+        }
+
+        let isMulti = VietConstants.isMultiSyllabic(result)
+        let isEnglishPattern = rawStr.hasSuffix("ward") || rawStr.hasSuffix("word") || rawStr.hasSuffix("ware") || rawStr.hasSuffix("swer") || rawStr == "serene"
+
+        if (isMulti && hasTransformedChar) || isEnglishPattern {
+            return EngineResult(
+                processedText: String(rawInput),
+                hasTransformation: false
+            )
+        }
+
         let processed = String(result)
         return EngineResult(
             processedText: processed,
-            hasTransformation: anyTransformation
+            hasTransformation: anyTransformation && processed != String(rawInput)
         )
     }
 
@@ -223,8 +266,9 @@ final class VietnameseEngine: Sendable {
     /// Kiểm tra xem vị trí hiện tại trong `chars` có hợp lệ để nhận dấu thanh không:
     /// 1. Phải có ít nhất một nguyên âm trong `chars`.
     /// 2. Các nguyên âm phải nằm trong một cụm liên tục duy nhất (không có phụ âm xen giữa, tránh từ đa âm tiết tiếng Anh như "resets", "markets").
-    /// 3. Phần phụ âm đứng sau nguyên âm cuối (coda) phải rỗng hoặc là coda hợp lệ trong tiếng Việt (c, ch, m, n, ng, nh, p, t).
-    private func isValidTonePosition(in chars: [Character]) -> Bool {
+    /// 3. Phần phụ âm đứng sau nguyên âm cuối (coda) phải rỗng hoặc là coda hợp lệ trong tiếng Việt (c, ch, m, n, ng, nh, p, t, z).
+    /// 4. Âm tiết khép bằng phụ âm tắc (c, ch, p, t) chỉ được mang thanh sắc hoặc nặng.
+    private func isValidTonePosition(in chars: [Character], tone: Tone? = nil) -> Bool {
         var vowelIndices: [Int] = []
         for (i, ch) in chars.enumerated() {
             if VietConstants.isVowel(ch) {
@@ -236,19 +280,38 @@ final class VietnameseEngine: Sendable {
             return false
         }
 
-        // Kiểm tra tất cả nguyên âm có liên tiếp nhau không (ngăn cách bởi phụ âm -> từ đa âm tiết / ngoại lai)
+        // 1. Kiểm tra tất cả nguyên âm có liên tiếp nhau không (ngăn cách bởi phụ âm -> từ đa âm tiết / ngoại lai)
         if lastVowel - firstVowel + 1 != vowelIndices.count {
             return false
         }
 
-        // Kiểm tra phần phụ âm đứng sau nguyên âm cuối cùng
+        // Cụm nguyên âm trong tiếng Việt tối đa 3 nguyên âm (tam trùng âm: iêu, uôi, oai, uây, ươi, ươu)
+        if vowelIndices.count > 3 {
+            return false
+        }
+
+        // 2. Kiểm tra phần phụ âm đứng sau nguyên âm cuối cùng
         let suffixChars = chars[(lastVowel + 1)...]
         if suffixChars.isEmpty {
             return true
         }
 
         let suffix = String(suffixChars).lowercased()
-        return VietConstants.validCodas.contains(suffix)
+        if !VietConstants.validCodas.contains(suffix) {
+            return false
+        }
+
+        // 3. Luật âm tiết khép phụ âm tắc (c, ch, p, t): chỉ đi với thanh sắc và nặng
+        if let tone = tone, tone != .none {
+            let stopCodas: Set<String> = ["c", "ch", "p", "t"]
+            if stopCodas.contains(suffix) {
+                if tone != .sac && tone != .nang {
+                    return false
+                }
+            }
+        }
+
+        return true
     }
 
     private func updateVowelFlag(_ flag: inout Bool, in chars: [Character]) {
