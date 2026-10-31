@@ -99,7 +99,7 @@ final class VietnameseEngine: Sendable {
                 // Chỉ xử lý nó như tone key nếu đang có dấu thanh active (khác .none).
                 // Nếu không có dấu active, ta coi nó là ký tự thường (sẽ append vào result).
                 if tone == .none {
-                    let hasActiveTone = pendingTone != nil && pendingTone != Tone.none
+                    let hasActiveTone = (pendingTone != nil && pendingTone != Tone.none) || VietConstants.hasTone(in: result)
                     if !hasActiveTone {
                         // Bỏ qua việc xử lý tone key, để nó rơi xuống bước 2c làm ký tự thường
                         result.append(char)
@@ -163,7 +163,7 @@ final class VietnameseEngine: Sendable {
                     style: tonePlacement
                 )
                 anyTransformation = true
-            } else if let toneChar = pendingToneChar, let insertIdx = pendingToneIndex {
+            } else if tone != Tone.none, let toneChar = pendingToneChar, let insertIdx = pendingToneIndex {
                 // Nếu cấu trúc từ sau cùng không hợp lệ để mang dấu thanh tiếng Việt
                 // (ví dụ: gõ "cors", "fork", "market", từ đa âm tiết hoặc coda không hợp lệ)
                 // Hoàn trả lại ký tự tone key đã bị nuốt

@@ -201,6 +201,11 @@ final class GlobalEventTapManager {
     private var lastModifierDownTime: TimeInterval = 0
     private var hasOtherKeyPressedDuringModifier: Bool = false
 
+    /// Lưu từ tiếng Việt vừa commit gần nhất để hỗ trợ phục hồi khi Backspace (Re-composition).
+    private var lastCommittedWord: String? = nil
+    /// Số lượng dấu cách ngay sau từ vừa commit (0: không có, 1: có 1 space, >1: nhiều space)
+    private var trailingSpaceCount: Int = 0
+
     /// Đồng bộ preferences vào buffer.
     func syncPreferences() {
         let prefs = PreferencesManager.shared
@@ -262,6 +267,8 @@ final class GlobalEventTapManager {
         eventTap = nil
         runLoopSource = nil
         buffer.reset()
+        lastCommittedWord = nil
+        trailingSpaceCount = 0
         NSLog("VNKey: Global event tap stopped.")
     }
 
@@ -294,6 +301,8 @@ final class GlobalEventTapManager {
             if buffer.isComposing {
                 buffer.commit()
             }
+            lastCommittedWord = nil
+            trailingSpaceCount = 0
             CGEventStrategy.shared.resetState()
             ClipboardStrategy.shared.resetState()
             return Unmanaged.passUnretained(event)
@@ -360,6 +369,8 @@ final class GlobalEventTapManager {
             if buffer.isComposing {
                 buffer.commit()
             }
+            lastCommittedWord = nil
+            trailingSpaceCount = 0
             CGEventStrategy.shared.resetState()
             ClipboardStrategy.shared.resetState()
             return Unmanaged.passUnretained(event)
@@ -386,6 +397,8 @@ final class GlobalEventTapManager {
             if buffer.isComposing {
                 buffer.commit()
             }
+            lastCommittedWord = nil
+            trailingSpaceCount = 0
             CGEventStrategy.shared.resetState()
             ClipboardStrategy.shared.resetState()
             return Unmanaged.passUnretained(event)
@@ -416,6 +429,8 @@ final class GlobalEventTapManager {
             if buffer.isComposing {
                 buffer.commit()
             }
+            lastCommittedWord = nil
+            trailingSpaceCount = 0
             CGEventStrategy.shared.resetState()
             ClipboardStrategy.shared.resetState()
             return Unmanaged.passUnretained(event)
@@ -426,6 +441,8 @@ final class GlobalEventTapManager {
             if buffer.isComposing {
                 buffer.commit()
             }
+            lastCommittedWord = nil
+            trailingSpaceCount = 0
             CGEventStrategy.shared.resetState()
             ClipboardStrategy.shared.resetState()
             return Unmanaged.passUnretained(event)
@@ -458,6 +475,8 @@ final class GlobalEventTapManager {
             if buffer.isComposing {
                 buffer.commit()
             }
+            lastCommittedWord = nil
+            trailingSpaceCount = 0
             CGEventStrategy.shared.resetState()
             ClipboardStrategy.shared.resetState()
             return Unmanaged.passUnretained(event)
@@ -470,6 +489,13 @@ final class GlobalEventTapManager {
 
     private func handleCharacterInput(_ char: Character) -> Bool {
         syncPreferences()
+
+        // Nếu người dùng bắt đầu từ mới sau dấu cách của từ trước:
+        // Đặt trailingSpaceCount = 0 vì con trỏ đã nằm trong từ mới,
+        // nhưng giữ nguyên lastCommittedWord để nếu người dùng xóa hết từ mới thì vẫn quay lại được!
+        if trailingSpaceCount > 0 {
+            trailingSpaceCount = 0
+        }
 
         let oldText = buffer.processedText
 
@@ -492,29 +518,59 @@ final class GlobalEventTapManager {
     }
 
     private func handleBackspace() -> Bool {
-        guard buffer.isComposing else {
-            return false
+        if buffer.isComposing {
+            let oldText = buffer.processedText
+            buffer.deleteBackward()
+            let newText = buffer.processedText
+
+            updateStrategy(newText: newText, oldText: oldText)
+
+            // Nếu sau khi xóa, từ hiện tại đã hết sạch (buffer rỗng)
+            // và trước đó có từ đã commit: con trỏ đã lùi về ngay sau dấu cách!
+            if buffer.isEmpty && lastCommittedWord != nil {
+                trailingSpaceCount = 1
+            }
+            return true
         }
 
-        let oldText = buffer.processedText
-        buffer.deleteBackward()
-        let newText = buffer.processedText
+        // Buffer không composing (đang rỗng)
+        // Kiểm tra xem có từ trước đó vừa cách 1 khoảng trắng không (Re-composition on Backspace)
+        if let word = lastCommittedWord, trailingSpaceCount == 1 {
+            // Backspace này xóa dấu cách trên màn hình và khôi phục từ trước đó
+            updateStrategy(newText: "", oldText: " ")
+            buffer.restore(text: word)
+            trackStrategy(newText: word)
+            lastCommittedWord = nil
+            trailingSpaceCount = 0
+            return true
+        }
 
-        updateStrategy(newText: newText, oldText: oldText)
-        return true
+        return false
     }
 
     private func handleSpace() -> Bool {
         if buffer.isComposing {
             let oldText = buffer.processedText
+            if !oldText.isEmpty {
+                lastCommittedWord = oldText
+                trailingSpaceCount = 1
+            }
             buffer.commit()
             // Type the space via strategy queue and reset tracking
             updateStrategy(newText: oldText + " ", oldText: oldText)
             CGEventStrategy.shared.resetState()
             ClipboardStrategy.shared.resetState()
             return true // swallow space
+        } else {
+            if lastCommittedWord != nil {
+                trailingSpaceCount += 1
+                if trailingSpaceCount > 1 {
+                    lastCommittedWord = nil
+                    trailingSpaceCount = 0
+                }
+            }
+            return false // let Space pass through natively
         }
-        return false // let Space pass through natively
     }
 
     private func handleEscape() -> Bool {
@@ -525,6 +581,8 @@ final class GlobalEventTapManager {
         let oldText = buffer.processedText
         let rawText = String(buffer.rawBuffer)
         buffer.reset()
+        lastCommittedWord = nil
+        trailingSpaceCount = 0
 
         updateStrategy(newText: rawText, oldText: oldText)
         CGEventStrategy.shared.resetState()
@@ -538,6 +596,8 @@ final class GlobalEventTapManager {
             CGEventStrategy.shared.resetState()
             ClipboardStrategy.shared.resetState()
         }
+        lastCommittedWord = nil
+        trailingSpaceCount = 0
     }
 
     // MARK: - Screen Update Strategy Dispatcher

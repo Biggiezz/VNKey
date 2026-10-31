@@ -109,6 +109,14 @@ final class CompositionBuffer {
         state = .idle
     }
 
+    /// Khôi phục trạng thái buffer từ một từ đã xử lý trước đó (cho tính năng Re-composition on Backspace).
+    func restore(text: String) {
+        rawBuffer = Array(text)
+        processedText = text
+        previousProcessedText = text
+        state = .composing
+    }
+
     /// Kiểm tra buffer có đang rỗng không.
     var isEmpty: Bool {
         return rawBuffer.isEmpty

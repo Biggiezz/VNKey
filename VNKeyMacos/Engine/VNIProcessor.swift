@@ -197,11 +197,12 @@ final class VNIProcessor: InputMethodProcessor {
             if VietConstants.isVowel(ch) {
                 if targets.contains(base) {
                     let suffix = String(chars[(i + 1)...]).lowercased()
-                    if suffix.isEmpty || VietConstants.validCodas.contains(suffix) {
+                    if suffix.isEmpty || VietConstants.validCodas.contains(suffix) || suffix.allSatisfy({ VietConstants.isVowel($0) }) {
                         return i
                     }
                 }
-                break
+                // Tiếp tục duyệt các nguyên âm khác trong cụm nguyên âm thay vì break ngay lập tức
+                continue
             }
         }
         return nil

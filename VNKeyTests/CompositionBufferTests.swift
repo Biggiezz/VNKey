@@ -222,4 +222,43 @@ final class CompositionBufferTests: XCTestCase {
         buffer.append("s")
         XCTAssertEqual(buffer.processedText, "hoá")
     }
+
+    // MARK: - Re-composition on Restore
+
+    func testRestoreAndRecomposeDelayedCircumflex() {
+        let buffer = CompositionBuffer()
+        buffer.inputMethod = .telex
+
+        // 1. Giả lập restore từ "chièu" (sau khi backspace xóa space)
+        buffer.restore(text: "chièu")
+        XCTAssertTrue(buffer.isComposing)
+        XCTAssertEqual(buffer.processedText, "chièu")
+
+        // 2. Gõ thêm "e" -> phải biến thành "chiều"
+        let res = buffer.append("e")
+        XCTAssertEqual(res.processedText, "chiều")
+        XCTAssertEqual(buffer.processedText, "chiều")
+        XCTAssertTrue(res.hasTransformation)
+    }
+
+    func testRestoreAndDeleteBackwardThenRecompose() {
+        let buffer = CompositionBuffer()
+        buffer.inputMethod = .telex
+
+        // 1. Restore "chièu"
+        buffer.restore(text: "chièu")
+
+        // 2. Xóa chữ "u" -> còn "chiè"
+        let delRes = buffer.deleteBackward()
+        XCTAssertEqual(delRes?.processedText, "chiè")
+        XCTAssertEqual(buffer.processedText, "chiè")
+
+        // 3. Gõ lại "u" -> "chièu"
+        buffer.append("u")
+        XCTAssertEqual(buffer.processedText, "chièu")
+
+        // 4. Gõ "e" -> "chiều"
+        let finalRes = buffer.append("e")
+        XCTAssertEqual(finalRes.processedText, "chiều")
+    }
 }
